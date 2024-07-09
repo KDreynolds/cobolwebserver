@@ -1,0 +1,40 @@
+IDENTIFICATION DIVISION.
+PROGRAM-ID. COBOL-WEB-SERVER.
+
+ENVIRONMENT DIVISION.
+CONFIGURATION SECTION.
+SPECIAL-NAMES.
+    CALL-CONVENTION 1 IS STDCALL.
+
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WS-SERVER-SOCKET PIC 9(9) COMP.
+01 WS-PORT PIC 9(5) VALUE 8080.
+
+PROCEDURE DIVISION.
+
+MAIN-PROCEDURE.
+    PERFORM INITIALIZE-SERVER
+    PERFORM ACCEPT-CONNECTIONS
+    STOP RUN.
+
+INITIALIZE-SERVER.
+    CALL "init_server" USING BY VALUE WS-PORT
+                       RETURNING WS-SERVER-SOCKET.
+    IF WS-SERVER-SOCKET = -1
+        DISPLAY "Failed to initialize server"
+        STOP RUN
+    END-IF.
+    DISPLAY "Server initialized on port " WS-PORT.
+
+ACCEPT-CONNECTION.
+    * Code to accept incoming connection would go here
+
+PROCESS-REQUEST.
+    * Code to read and parse HTTP request would go here
+
+SEND-RESPONSE.
+    * Code to send HTTP response would go here
+
+CLOSE-CONNECTION.
+    * Code to close the connection would go here
