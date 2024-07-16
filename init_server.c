@@ -7,6 +7,7 @@
     #include <netinet/in.h>
     #include <unistd.h>
     #include <arpa/inet.h>
+    #include <errno.h>
     #define SOCKET int
     #define INVALID_SOCKET -1
     #define SOCKET_ERROR -1
@@ -79,8 +80,14 @@ SOCKET accept_connection(SOCKET server_socket) {
     }
 
     printf("New connection accepted\n");
+    #ifdef _WIN32
+        Sleep(100);  // Sleep for 100 milliseconds on Windows
+    #else
+        usleep(100000);  // Sleep for 100 milliseconds on Unix-like systems
+    #endif
     return client_socket;
 }
+
 void handle_connection(SOCKET client_socket) {
     char buffer[1024] = {0};
     char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello from C Web Server!";
@@ -108,7 +115,22 @@ int read_request(SOCKET client_socket, char* buffer, int buffer_size) {
 }
 
 int send_response(SOCKET client_socket, const char* response, int response_length) {
-    return send(client_socket, response, response_length, 0);
+    int total_sent = 0;
+    int remaining = response_length;
+    int sent;
+
+    while (total_sent < response_length) {
+        sent = send(client_socket, response + total_sent, remaining, 0);
+        if (sent == SOCKET_ERROR) {
+            printf("Send failed: %d\n", errno);
+            return SOCKET_ERROR;
+        }
+        total_sent += sent;
+        remaining -= sent;
+    }
+
+    printf("Response sent successfully. Total bytes: %d\n", total_sent);
+    return total_sent;
 }
 
 int main() {
